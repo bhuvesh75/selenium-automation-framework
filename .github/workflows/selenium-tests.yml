@@ -1,0 +1,63 @@
+name: Selenium UI Tests (Python)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  selenium-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Set up Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Expose ChromeDriver path to tests
+        # WHY: webdriver-manager can pick the wrong file on Linux CI runners.
+        # Exporting the path to the system chromedriver (installed by setup-chrome)
+        # lets driver_factory.py use it directly via CHROMEDRIVER_PATH env var.
+        run: echo "CHROMEDRIVER_PATH=$(which chromedriver)" >> $GITHUB_ENV
+
+      - name: Create reports directory
+        run: mkdir -p reports/screenshots
+
+      - name: Run smoke tests
+        run: pytest tests/smoke/ -v --html=reports/smoke-report.html --self-contained-html
+        env:
+          HEADLESS: 'true'
+          BROWSER: chrome
+          CHROMEDRIVER_PATH: ${{ env.CHROMEDRIVER_PATH }}
+
+      - name: Run functional tests
+        run: pytest tests/functional/ -v --html=reports/functional-report.html --self-contained-html
+        env:
+          HEADLESS: 'true'
+          BROWSER: chrome
+          CHROMEDRIVER_PATH: ${{ env.CHROMEDRIVER_PATH }}
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-reports
+          path: reports/
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-screenshots
+          path: reports/screenshots/

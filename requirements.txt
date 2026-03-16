@@ -1,0 +1,14 @@
+# Core test runner
+pytest==8.2.2
+# Selenium WebDriver 4 — browser automation
+selenium==4.21.0
+# WebDriver Manager — automatic chromedriver/geckodriver download
+webdriver-manager==4.0.1
+# pytest-html — HTML test reports
+pytest-html==4.1.1
+# Allure pytest integration — rich test reporting
+allure-pytest==2.13.5
+# python-dotenv — load .env files
+python-dotenv==1.0.1
+# Faker — generate realistic test data
+Faker==25.2.0
